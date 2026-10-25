@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TAP BIRD</title>
+<style>
+:root{--bg:#eaf5f3;--ink:#183a3a;--green:#3b9c78;--yellow:#ffd66b;--card:#fff;--muted:#6c8985}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif;display:flex;justify-content:center;min-height:100vh}
+.app{width:min(100%,460px);min-height:100vh;padding:18px 16px 24px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:1000;font-size:26px;letter-spacing:1px}.balance{background:#fff;border-radius:16px;padding:10px 13px;font-weight:800;box-shadow:0 3px 0 #d4e5e1}
+.card{background:var(--card);border-radius:24px;padding:18px;box-shadow:0 5px 0 #d5e7e2}
+h1,h2,p{margin:0}h2{font-size:20px;margin-bottom:10px}.sub{color:var(--muted);font-size:13px}
+.screen{display:none;flex:1;flex-direction:column;gap:14px}.screen.active{display:flex}
+.hero{background:#cfece2;border-radius:26px;padding:22px 16px;text-align:center;position:relative;overflow:hidden;min-height:255px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.bird{font-size:76px;filter:none;line-height:1.2}.hero h1{font-size:32px;margin:6px 0}.btn{border:0;border-radius:16px;padding:14px 16px;font-weight:850;font-size:16px;background:var(--green);color:#fff;cursor:pointer;box-shadow:0 4px 0 #277657}.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #277657}.btn.secondary{background:#e9f3f0;color:var(--ink);box-shadow:0 4px 0 #d3e5df}.btn.gold{background:var(--yellow);color:#604d14;box-shadow:0 4px 0 #e5bf4c}.row{display:flex;gap:10px}.row>*{flex:1}.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:auto}.nav button{background:#fff;color:var(--ink);box-shadow:0 3px 0 #d5e7e2;padding:12px 4px;font-size:13px}.nav button.selected{background:#d1eee3;box-shadow:0 3px 0 #a9d9c8}
+.gamewrap{background:#ccece1;border-radius:24px;overflow:hidden;position:relative}.gamewrap canvas{display:block;width:100%;height:auto;touch-action:manipulation}.gamehud{display:flex;justify-content:space-between;padding:10px 4px;font-weight:800}
+.list{display:flex;flex-direction:column;gap:9px}.item{display:flex;align-items:center;gap:12px;background:#f2f8f6;padding:12px;border-radius:16px}.item .icon{font-size:30px;width:42px;text-align:center}.item .info{flex:1}.item strong{display:block}.item small{color:var(--muted)}.item button{padding:9px 11px;font-size:13px;box-shadow:none}.pill{display:inline-block;background:#e7f3ef;padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800}
+input[type=file]{display:none}.notice{font-size:12px;color:var(--muted);line-height:1.4}.chance{font-size:28px;font-weight:1000;text-align:center;color:var(--green)}.empty{text-align:center;padding:20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><div class="brand">🐤 TAP BIRD</div><div class="balance">🪙 <span id="coins">0</span></div></header>
+  <section id="home" class="screen active">
+    <div class="hero"><div class="bird" id="homeBird">🐤</div><h1>TAP BIRD</h1><p class="sub">Нажимай, лети и собирай монеты!</p><div style="height:18px"></div><button class="btn" id="playBtn" style="width:100%">▶ Играть</button></div>
+    <div class="row"><div class="card"><p class="sub">РЕКОРД</p><h2 id="homeBest">0</h2></div><div class="card"><p class="sub">ИГРЫ</p><h2 id="homeGames">0</h2></div></div>
+    <div class="row"><button class="btn secondary" data-go="shop">🛍️ Магазин</button><button class="btn secondary" data-go="profile">👤 Профиль</button></div>
+    <div class="nav"><button class="btn selected" data-go="home">🏠 Главная</button><button class="btn" data-go="shop">🛍️ Магазин</button><button class="btn" data-go="profile">👤 Профиль</button></div>
+  </section>
+  <section id="game" class="screen">
+    <div class="gamehud"><span>🪙 <span id="runCoins">0</span></span><span>Счёт: <span id="score">0</span></span></div>
+    <div class="gamewrap"><canvas id="canvas" width="400" height="600" aria-label="Игра TAP BIRD"></canvas></div>
+    <p class="sub" style="text-align:center">Нажимай на экран, чтобы взлететь</p>
+    <button class="btn secondary" id="quitBtn">← В меню</button>
+  </section>
+  <section id="shop" class="screen">
+    <div class="card"><h2>🛍️ Магазин</h2><p class="sub">Покупай облики за монеты. Свой фон — за 10 000 🪙.</p></div>
+    <div class="card"><h2>🐤 Птицы</h2><div class="list" id="birdShop"></div></div>
+    <div class="card"><h2>🟩 Трубы</h2><div class="list" id="pipeShop"></div></div>
+    <div class="card"><h2>🌤️ Фоны</h2><div class="list" id="bgShop"></div></div>
+    <div class="nav"><button class="btn" data-go="home">🏠 Главная</button><button class="btn selected" data-go="shop">🛍️ Магазин</button><button class="btn" data-go="profile">👤 Профиль</button></div>
+  </section>
+  <section id="profile" class="screen">
+    <div class="card"><h2>👤 Профиль</h2><p class="sub">Твой прогресс в TAP BIRD</p></div>
+    <div class="row"><div class="card"><p class="sub">РЕКОРД</p><h2 id="profileBest">0</h2></div><div class="card"><p class="sub">СЫГРАНО ИГР</p><h2 id="profileGames">0</h2></div></div>
+    <div class="card"><p class="sub">БАЛАНС</p><h2>🪙 <span id="profileCoins">0</span></h2></div>
+    <div class="card"><h2>🎰 Апгрейдер</h2><p class="sub">Поставь скин, который у тебя есть, и попробуй получить более дорогой. При неудаче поставленный скин теряется.</p><div style="height:12px"></div><label class="sub">Твой скин (ставка)</label><select id="stake" style="width:100%;padding:12px;border-radius:12px;border:1px solid #d5e7e2;margin:5px 0 12px"></select><label class="sub">Желаемый скин</label><select id="target" style="width:100%;padding:12px;border-radius:12px;border:1px solid #d5e7e2;margin:5px 0 12px"></select><div class="chance" id="chance">—</div><button class="btn gold" id="upgradeBtn" style="width:100%;margin-top:10px">Попробовать</button><p class="notice" id="upgradeMsg" style="margin-top:10px"></p></div>
+    <div class="nav"><button class="btn" data-go="home">🏠 Главная</button><button class="btn" data-go="shop">🛍️ Магазин</button><button class="btn selected" data-go="profile">👤 Профиль</button></div>
+  </section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const defaults={coins:0,best:0,games:0,ownedBirds:[0],ownedPipes:[0],ownedBgs:[0],bird:0,pipe:0,bg:0,customBg:null,customBgUnlocked:false};
+let data;try{data={...defaults,...JSON.parse(localStorage.getItem('tapBirdSave')||'{}')}}catch{data={...defaults}}
+const birds=[{name:'Классика',icon:'🐤',price:0},{name:'Синяя',icon:'🐦',price:100},{name:'Пингвин',icon:'🐧',price:250},{name:'Сова',icon:'🦉',price:500},{name:'Попугай',icon:'🦜',price:1000},{name:'Золотая',icon:'🐥',price:2500}];
+const pipes=[{name:'Мятные',color:'#4baf86',price:0},{name:'Небесные',color:'#68a9dc',price:150},{name:'Фиолетовые',color:'#9a83c9',price:400},{name:'Чёрный металл',color:'#343b45',price:900}];
+const bgs=[{name:'Мятное небо',color:'#ccece1',price:0},{name:'Закат',color:'#f5d5b1',price:300},{name:'Ночное небо',color:'#cdd8f0',price:700}];
+function save(){localStorage.setItem('tapBirdSave',JSON.stringify(data));refresh()}
+function refresh(){['coins','profileCoins'].forEach(x=>$(x).textContent=data.coins);['homeBest','profileBest'].forEach(x=>$(x).textContent=data.best);['homeGames','profileGames'].forEach(x=>$(x).textContent=data.games);$('homeBird').textContent=birds[data.bird]?.icon||'🐤';renderShops();renderUpgrade()}
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('selected',b.dataset.go===id));if(id==='game')startGame();if(id==='profile')renderUpgrade()}
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+$('playBtn').onclick=()=>go('game');$('quitBtn').onclick=()=>{running=false;go('home')};
+function renderShops(){
+const render=(id,arr,type)=>{$(id).innerHTML=arr.map((o,i)=>{let owned=data['owned'+type].includes(i),selected=data[type.toLowerCase().replace('s','')=== 'x'];let active=(type==='Birds'?data.bird:type==='Pipes'?data.pipe:data.bg)===i;let icon=type==='Pipes'?'🟩':type==='Bgs'?'🌄':o.icon;return `<div class="item"><div class="icon">${icon}</div><div class="info"><strong>${o.name}</strong><small>${o.price.toLocaleString('ru-RU')} монет ${active?' · выбрано':''}</small></div><button class="btn ${owned?'secondary':''}" data-buy="${type}:${i}">${owned?(active?'Выбрано':'Выбрать'):'Купить'}</button></div>`}).join('')};
+render('birdShop',birds,'Birds');render('pipeShop',pipes,'Pipes');render('bgShop',bgs,'Bgs');
+$('bgShop').innerHTML+=`<div class="item"><div class="icon">🖼️</div><div class="info"><strong>Свой фон</strong><small>${data.customBgUnlocked?'Разблокировано':'10 000 монет · загрузка из галереи'}</small></div><button class="btn ${data.customBgUnlocked?'secondary':''}" id="customBgBtn">${data.customBgUnlocked?'Загрузить':'10 000 🪙'}</button><input type="file" id="bgFile" accept="image/*"></div>`;
+document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{let [t,idx]=b.dataset.buy.split(':');idx=+idx;let arr=t==='Birds'?birds:t==='Pipes'?pipes:bgs,key='owned'+t,sel=t==='Birds'?'bird':t==='Pipes'?'pipe':'bg';if(data[key].includes(idx)){data[sel]=idx;save();return}if(data.coins<arr[idx].price){alert('Не хватает монет!');return}data.coins-=arr[idx].price;data[key].push(idx);data[sel]=idx;save()});
+$('customBgBtn').onclick=()=>{if(!data.customBgUnlocked){if(data.coins<10000){alert('Свой фон открывается за 10 000 монет.');return}data.coins-=10000;data.customBgUnlocked=true;save()}$('bgFile').click()};
+$('bgFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{data.customBg=r.result;save();alert('Фон установлен!')};r.readAsDataURL(f)};
+}
+const chances=[{p:100,c:80},{p:200,c:65},{p:500,c:40},{p:1000,c:25},{p:5000,c:5},{p:10000,c:2}];
+function chance(price){let x=chances.find(v=>price<=v.p);return x?x.c:1}
+function renderUpgrade(){const owned=data.ownedBirds.map(i=>({i,o:birds[i]}));$('stake').innerHTML=owned.map(x=>`<option value="${x.i}">${x.o.name} · ${x.o.price} 🪙</option>`).join('');$('target').innerHTML=birds.map((b,i)=>`<option value="${i}">${b.name} · ${b.price} 🪙</option>`).join('');const update=()=>{let s=birds[+$('stake').value],t=birds[+$('target').value];$('chance').textContent=chance(t.price)+'% шанс';$('upgradeBtn').disabled=!s||!t||t.price<=s.price||!data.ownedBirds.includes(+ $('stake').value);$('upgradeBtn').style.opacity=$('upgradeBtn').disabled?'.5':'1'};$('stake').onchange=update;$('target').onchange=update;update()}
+$('upgradeBtn').onclick=()=>{let si=+$('stake').value,ti=+$('target').value,s=birds[si],t=birds[ti],c=chance(t.price);if(t.price<=s.price||!data.ownedBirds.includes(si)){ $('upgradeMsg').textContent='Выбери скин дороже ставки.';return}if(Math.random()*100<c){data.ownedBirds=data.ownedBirds.filter(i=>i!==si);if(!data.ownedBirds.includes(ti))data.ownedBirds.push(ti);data.bird=ti;$('upgradeMsg').textContent='Успех! Получен скин: '+t.name+' 🎉'}else{data.ownedBirds=data.ownedBirds.filter(i=>i!==si);if(data.bird===si)data.bird=data.ownedBirds[0]??0;$('upgradeMsg').textContent='Неудача! Скин «'+s.name+'» потерян.'}save();renderUpgrade()};
+let canvas=$('canvas'),ctx=canvas.getContext('2d'),running=false,raf=0,birdY=270,vel=0,frame=0,score=0,runCoins=0,pipesLive=[],coinLive=[];
+function startGame(){cancelAnimationFrame(raf);running=true;birdY=280;vel=0;frame=0;score=0;runCoins=0;pipesLive=[];coinLive=[];$('score').textContent=0;$('runCoins').textContent=0;loop()}
+function flap(){if(!running)return;vel=-5.8}
+canvas.addEventListener('pointerdown',flap);document.addEventListener('keydown',e=>{if(e.code==='Space'&&$('game').classList.contains('active'))flap()});
+function loop(){if(!running)return;frame++;vel+=.28;birdY+=vel;if(frame%92===0){let gap=155,top=80+Math.random()*220;pipesLive.push({x:420,top,gap,passed:false});coinLive.push({x:430,y:top+gap/2})}
+pipesLive.forEach(p=>p.x-=2.5);coinLive.forEach(c=>c.x-=2.5);
+if(frame%3===0&&birdY<590&&birdY>10)score+=.03;
+let dead=birdY>575||birdY<0;
+for(const p of pipesLive){if(95>p.x-38&&95<p.x+52&&(birdY-14<p.top||birdY+14>p.top+p.gap))dead=true;if(!p.passed&&p.x+52<95){p.passed=true;score+=1;runCoins+=3}}
+for(const c of coinLive){if(!c.got&&Math.abs(c.x-95)<23&&Math.abs(c.y-birdY)<25){c.got=true;runCoins+=5}}
+pipesLive=pipesLive.filter(p=>p.x>-70);coinLive=coinLive.filter(c=>c.x>-30&&!c.got);
+const bg=bgs[data.bg]||bgs[0];ctx.fillStyle=bg.color;ctx.fillRect(0,0,400,600);
+if(data.customBg){try{if(window.gameCustomImg?.src!==data.customBg){window.gameCustomImg=new Image();window.gameCustomImg.src=data.customBg}if(window.gameCustomImg.complete)ctx.drawImage(window.gameCustomImg,0,0,400,600)}catch{}}
+ctx.fillStyle='#ffffff99';for(let i=0;i<4;i++){let x=(i*125-frame*.3%500+500)%500;ctx.beginPath();ctx.ellipse(x,85+i%2*85,27,10,0,0,Math.PI*2);ctx.fill()}
+ctx.fillStyle=pipes[data.pipe].color;pipesLive.forEach(p=>{ctx.fillRect(p.x,0,48,p.top);ctx.fillRect(p.x-5,p.top-18,58,18);ctx.fillRect(p.x,p.top+p.gap,48,600);ctx.fillRect(p.x-5,p.top+p.gap,58,18)});
+coinLive.forEach(c=>{ctx.fillStyle='#f5c84c';ctx.beginPath();ctx.arc(c.x,c.y,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff1ad';ctx.font='bold 13px sans-serif';ctx.fillText('$',c.x-4,c.y+5)});
+ctx.font='32px sans-serif';ctx.fillText(birds[data.bird].icon,77,birdY+11);ctx.fillStyle='#244b43';ctx.font='bold 22px sans-serif';ctx.fillText(Math.floor(score),18,35);
+$('score').textContent=Math.floor(score);$('runCoins').textContent=runCoins;
+if(dead){running=false;data.games++;data.best=Math.max(data.best,Math.floor(score));data.coins+=runCoins+Math.floor(score);save();ctx.fillStyle='#183a3acc';ctx.fillRect(25,210,350,155);ctx.fillStyle='white';ctx.textAlign='center';ctx.font='bold 28px sans-serif';ctx.fillText('Игра окончена',200,252);ctx.font='18px sans-serif';ctx.fillText('Счёт: '+Math.floor(score),200,286);ctx.fillText('Награда: '+(runCoins+Math.floor(score))+' 🪙',200,316);ctx.textAlign='start';return}
+raf=requestAnimationFrame(loop)}
+refresh();
+</script>
+</body>
+</html>
